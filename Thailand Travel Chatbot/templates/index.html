@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thailand Trip Planner Chatbot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #FFFBF5;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #FADADD;
+            color: #5C3D2E;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar button {
+            background-color: #F4C2C2;
+            color: #5C3D2E;
+            border: none;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-align: left;
+        }
+
+        .sidebar button:hover {
+            background-color: #E6A8A8;
+        }
+
+        .chat-container {
+            flex: 1;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #FFFFFF;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            font-size: 24px;
+            color: #D99AAB;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .chat-box {
+            height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #FFF5E1;
+        }
+
+        .chat-message {
+            display: flex;
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+
+        .chat-message.bot {
+            justify-content: flex-start;
+        }
+
+        .user-message, .bot-message {
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            line-height: 1.5;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-message {
+            background-color: #FADADD;
+            color: #5C3D2E;
+            margin-left: 20px;
+        }
+
+        .bot-message {
+            background-color: #E6E6FA;
+            color: #5C3D2E;
+            margin-right: 20px;
+        }
+
+        .user-message p, .bot-message p {
+            margin: 0;
+            padding: 0;
+            font-size: 15px;
+            white-space: pre-line;
+            word-wrap: break-word;
+        }
+
+        .input-container {
+            display: flex;
+            margin-top: 15px;
+        }
+
+        .query-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #D99AAB;
+            box-shadow: 0 0 5px rgba(217, 154, 171, 0.3);
+        }
+
+        .send-button {
+            background-color: #D99AAB;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin-left: 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .send-button:hover {
+            background-color: #B76E79;
+            transform: translateY(-1px);
+        }
+
+        /* Add timestamp style */
+        .message-timestamp {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <button onclick="selectOption('hotel')">Recommend Hotel</button>
+        <button onclick="selectOption('transportation')">Transportation</button>
+        <button onclick="selectOption('activities')">Activities</button>
+    </div>
+    <div class="chat-container">
+        <div class="header">Thailand Trip Planner Chatbot</div>
+        <div class="chat-box" id="chat-box">
+            {% if query_input %}
+            <div class="chat-message user">
+                <div class="user-message">
+                    <p>{{ query_input }}</p>
+                    <div class="message-timestamp">{{ time }}</div>
+                </div>
+            </div>
+            {% endif %}
+            {% if output %}
+            <div class="chat-message bot">
+                <div class="bot-message">
+                    <p>{{ output|safe }}</p>
+                    <div class="message-timestamp">{{ time }}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <form id="chat-form" method="POST" action="/" onsubmit="return submitForm(event)">
+            <div class="input-container">
+                <input type="text" class="query-input" id="query-input" name="query-input" required placeholder="Ask me about your trip to Thailand...">
+                <button type="submit" class="send-button">Send</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>
