@@ -19,8 +19,15 @@ socketio = SocketIO(app)
 
 # Define a function to format text by converting Markdown bold syntax to HTML strong tags
 def format_output(text):
-    """Convert Markdown bold syntax to HTML strong tags."""
-    return re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+    """แปลง Markdown เป็น HTML พร้อมทำให้ลิงก์สามารถคลิกได้"""
+    
+    # แปลง **bold text** เป็น <strong>
+    text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+
+    # แปลง URL เป็น <a href="URL">URL</a>
+    text = re.sub(r'(https?://[^\s]+)', r'<a href="\1" target="_blank">\1</a>', text)
+
+    return text
 
 # Define chatbot initialization
 def initialise_llama3():
@@ -52,14 +59,18 @@ def handle_send_message(data):
         # Append user query to history
         chat_history.append(("user", query_input, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
-        chat_messages = [(role, message) for role, message, _ in chat_history]  # ตัด timestamp ออก
+        chat_messages = [(role, message) for role, message, _ in chat_history]  # Remove timestamp
         chat_messages.append(("system", "You are my personal assistant"))
         create_prompt = ChatPromptTemplate.from_messages(chat_messages)
-
 
         # Get response from chatbot
         response = chatbot_pipeline.invoke(query_input)
 
+        # Check if the query is related to suggesting a hotel in Thailand
+        if "suggest hotel in thailand" in query_input.lower():
+            booking_link = "https://www.booking.com/country/th.en.html"
+            response += f"\n\nFor hotel suggestions in Thailand, you can visit <a href='{booking_link}' target='_blank'>Booking.com</a>."
+            logging.debug("Booking.com link added to response")
 
         # Append chatbot response to history
         chat_history.append(("system", response, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
@@ -71,28 +82,10 @@ def handle_send_message(data):
         session['history'] = chat_history
 
         # Emit response back to client
-        emit('receive_message', {'message': output, 'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+        emit('receive_message', {'message': output, 'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, json=True)
     except Exception as e:
         logging.error(f"Error during chatbot invocation: {e}")
         emit('receive_message', {'message': "Sorry, an error occurred while processing your request.", 'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True) 
-# Define route for home page
-@app.route('/', methods=['GET', 'POST'])
-def main():
-    query_input = None
-    output = None
-    if request.method == 'POST':
-        query_input = request.form.get('query-input')
-        if query_input:
-            try:
-                response = chatbot_pipeline.invoke({'question': query_input})
-                output = format_output(response)
-            except Exception as e:
-                logging.error(f"Error during chatbot invocation: {e}")
-                output = "Sorry, an error occurred while processing your request."
-    return render_template('index.html', query_input=query_input, output=output)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)

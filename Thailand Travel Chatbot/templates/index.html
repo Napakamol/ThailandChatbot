@@ -194,7 +194,7 @@
                 messageContainer.classList.add('chat-message', sender);
 
                 const messageContent = document.createElement('div');
-                messageContent.classList.add(sender == 'user' ? 'user-message' : 'bot-message');
+                messageContent.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
 
                 const messageText = document.createElement('p');
                 messageText.innerHTML = message;
