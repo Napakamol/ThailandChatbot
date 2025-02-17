@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
+        /* Your existing CSS remains exactly the same */
         body {
             background-color: #FFFBF5;
             font-family: 'Roboto', sans-serif;
@@ -16,7 +16,6 @@
             padding: 0;
             display: flex;
         }
-
         .sidebar {
             width: 200px;
             background-color: #FADADD;
@@ -26,7 +25,6 @@
             display: flex;
             flex-direction: column;
         }
-
         .sidebar button {
             background-color: #F4C2C2;
             color: #5C3D2E;
@@ -38,11 +36,9 @@
             font-size: 16px;
             text-align: left;
         }
-
         .sidebar button:hover {
             background-color: #E6A8A8;
         }
-
         .chat-container {
             flex: 1;
             max-width: 1000px;
@@ -52,7 +48,6 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-
         .header {
             text-align: center;
             font-size: 24px;
@@ -60,7 +55,6 @@
             font-weight: bold;
             margin-bottom: 20px;
         }
-
         .chat-box {
             height: 500px;
             overflow-y: auto;
@@ -69,21 +63,17 @@
             border-radius: 8px;
             background-color: #FFF5E1;
         }
-
         .chat-message {
             display: flex;
             width: 100%;
             margin: 15px 0;
         }
-
         .chat-message.user {
             justify-content: flex-end;
         }
-
         .chat-message.bot {
             justify-content: flex-start;
         }
-
         .user-message, .bot-message {
             padding: 15px;
             border-radius: 15px;
@@ -91,19 +81,16 @@
             line-height: 1.5;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-
         .user-message {
             background-color: #FADADD;
             color: #5C3D2E;
             margin-left: 20px;
         }
-
         .bot-message {
             background-color: #E6E6FA;
             color: #5C3D2E;
             margin-right: 20px;
         }
-
         .user-message p, .bot-message p {
             margin: 0;
             padding: 0;
@@ -111,12 +98,10 @@
             white-space: pre-line;
             word-wrap: break-word;
         }
-
         .input-container {
             display: flex;
             margin-top: 15px;
         }
-
         .query-input {
             flex: 1;
             padding: 12px 20px;
@@ -125,13 +110,11 @@
             font-size: 16px;
             transition: all 0.3s ease;
         }
-
         .query-input:focus {
             outline: none;
             border-color: #D99AAB;
             box-shadow: 0 0 5px rgba(217, 154, 171, 0.3);
         }
-
         .send-button {
             background-color: #D99AAB;
             color: white;
@@ -143,13 +126,10 @@
             font-weight: 500;
             transition: all 0.3s ease;
         }
-
         .send-button:hover {
             background-color: #B76E79;
             transform: translateY(-1px);
         }
-
-        /* Add timestamp style */
         .message-timestamp {
             font-size: 12px;
             color: #888;
@@ -157,8 +137,80 @@
             text-align: right;
         }
     </style>
-</head>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        // Function to handle sidebar button clicks
+        function selectOption(option) {
+            const inputField = document.getElementById('query-input');
+            switch(option) {
+                case 'hotel':
+                    inputField.value = "Can you recommend hotels in Thailand?";
+                    break;
+                case 'transportation':
+                    inputField.value = "What are the transportation options in Thailand?";
+                    break;
+                case 'activities':
+                    inputField.value = "What activities can I do in Thailand?";
+                    break;
+            }
+            inputField.focus();
+        }
 
+        // Function to scroll chat to bottom
+        function scrollToBottom() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Scroll to bottom when page loads and after new messages
+        window.onload = scrollToBottom;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const socket = io();
+            const chatForm = document.getElementById('chat-form');
+            const queryInput = document.getElementById('query-input');
+            const chatBox = document.getElementById('chat-box');
+
+            chatForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const message = queryInput.value;
+                if (message) {
+                    // Emit message to the server
+                    socket.emit('send_message', { message: message });
+                    // Append user message to chat box
+                    appendMessage('user', message, new Date().toLocaleString());
+                    queryInput.value = '';
+                }
+            });
+
+            socket.on('receive_message', function(data) {
+                // Append bot response to chat box
+                appendMessage('bot', data.message, data.timestamp);
+                scrollToBottom();
+            });
+
+            function appendMessage(sender, message, timestamp) {
+                const messageContainer = document.createElement('div');
+                messageContainer.classList.add('chat-message', sender);
+
+                const messageContent = document.createElement('div');
+                messageContent.classList.add(sender == 'user' ? 'user-message' : 'bot-message');
+
+                const messageText = document.createElement('p');
+                messageText.innerHTML = message;
+
+                const messageTimestamp = document.createElement('div');
+                messageTimestamp.classList.add('message-timestamp');
+                messageTimestamp.textContent = timestamp;
+
+                messageContent.appendChild(messageText);
+                messageContent.appendChild(messageTimestamp);
+                messageContainer.appendChild(messageContent);
+                chatBox.appendChild(messageContainer);
+            }
+        });
+    </script>
+</head>
 <body>
     <div class="sidebar">
         <button onclick="selectOption('hotel')">Recommend Hotel</button>
@@ -168,30 +220,19 @@
     <div class="chat-container">
         <div class="header">Thailand Trip Planner Chatbot</div>
         <div class="chat-box" id="chat-box">
-            {% if query_input %}
-            <div class="chat-message user">
-                <div class="user-message">
-                    <p>{{ query_input }}</p>
-                    <div class="message-timestamp">{{ time }}</div>
-                </div>
-            </div>
-            {% endif %}
-            {% if output %}
-            <div class="chat-message bot">
-                <div class="bot-message">
-                    <p>{{ output|safe }}</p>
-                    <div class="message-timestamp">{{ time }}</div>
-                </div>
-            </div>
-            {% endif %}
+            <!-- Chat messages will be appended here by JavaScript -->
         </div>
-        <form id="chat-form" method="POST" action="/" onsubmit="return submitForm(event)">
+        <form id="chat-form" method="POST" action="/">
             <div class="input-container">
-                <input type="text" class="query-input" id="query-input" name="query-input" required placeholder="Ask me about your trip to Thailand...">
+                <input type="text" 
+                       class="query-input" 
+                       id="query-input" 
+                       name="query-input" 
+                       required 
+                       placeholder="Ask me about your trip to Thailand...">
                 <button type="submit" class="send-button">Send</button>
             </div>
         </form>
     </div>
 </body>
-
 </html>
