@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Your existing CSS remains exactly the same */
         body {
             background-color: #FFFBF5;
             font-family: 'Roboto', sans-serif;
@@ -144,13 +143,16 @@
             const inputField = document.getElementById('query-input');
             switch(option) {
                 case 'hotel':
-                    inputField.value = "Can you recommend hotels in Thailand?";
+                    inputField.value = "Give me a booking link of hotel";
                     break;
                 case 'transportation':
                     inputField.value = "What are the transportation options in Thailand?";
                     break;
                 case 'activities':
                     inputField.value = "What activities can I do in Thailand?";
+                    break;
+                case 'picture':
+                    inputField.value = "Show me a picture with details about Wat Arun"; // Update with the desired place name
                     break;
             }
             inputField.focus();
@@ -197,7 +199,21 @@
                 messageContent.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
 
                 const messageText = document.createElement('p');
-                messageText.innerHTML = message;
+                
+                // Check if the message contains an image URL (http/https and ends with typical image extensions)
+                const imageUrlPattern = /^https?:\/\/.*\.(jpeg|jpg|gif|png|bmp|webp)$/i;
+                if (imageUrlPattern.test(message)) {
+                    // If it is an image link, create an image element
+                    const image = document.createElement('img');
+                    image.src = message;
+                    image.alt = "Image";  // Optional: add a description for the image
+                    image.style.maxWidth = '100%'; // Adjust the image size if needed
+                    image.style.height = 'auto';
+                    messageText.appendChild(image);
+                } else {
+                    // Otherwise, just append the text
+                    messageText.innerHTML = message;
+                }
 
                 const messageTimestamp = document.createElement('div');
                 messageTimestamp.classList.add('message-timestamp');
@@ -213,9 +229,10 @@
 </head>
 <body>
     <div class="sidebar">
-        <button onclick="selectOption('hotel')">Recommend Hotel</button>
+        <button onclick="selectOption('hotel')">Booking Hotel Link</button>
         <button onclick="selectOption('transportation')">Transportation</button>
         <button onclick="selectOption('activities')">Activities</button>
+        <button onclick="selectOption('picture')">Picture with Detail</button>
     </div>
     <div class="chat-container">
         <div class="header">Thailand Trip Planner Chatbot</div>
