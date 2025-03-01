@@ -135,10 +135,22 @@
             margin-top: 5px;
             text-align: right;
         }
+        .map-container {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #FFF5E1;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .map-container iframe {
+            width: 100%;
+            height: 400px;
+            border: 0;
+            border-radius: 10px;
+        }
     </style>
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <script>
-        // Function to handle sidebar button clicks
         function selectOption(option) {
             const inputField = document.getElementById('query-input');
             switch(option) {
@@ -152,19 +164,20 @@
                     inputField.value = "What activities can I do in Thailand?";
                     break;
                 case 'picture':
-                    inputField.value = "Show me a picture with details about Wat Arun"; // Update with the desired place name
+                    inputField.value = "Show me a picture with details about Wat Arun";
+                    break;
+                case 'map':
+                    inputField.value = "Show me the map for my itinerary";
                     break;
             }
             inputField.focus();
         }
 
-        // Function to scroll chat to bottom
         function scrollToBottom() {
             const chatBox = document.getElementById('chat-box');
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // Scroll to bottom when page loads and after new messages
         window.onload = scrollToBottom;
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -177,16 +190,13 @@
                 event.preventDefault();
                 const message = queryInput.value;
                 if (message) {
-                    // Emit message to the server
                     socket.emit('send_message', { message: message });
-                    // Append user message to chat box
                     appendMessage('user', message, new Date().toLocaleString());
                     queryInput.value = '';
                 }
             });
 
             socket.on('receive_message', function(data) {
-                // Append bot response to chat box
                 appendMessage('bot', data.message, data.timestamp);
                 scrollToBottom();
             });
@@ -199,19 +209,16 @@
                 messageContent.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
 
                 const messageText = document.createElement('p');
-                
-                // Check if the message contains an image URL (http/https and ends with typical image extensions)
+
                 const imageUrlPattern = /^https?:\/\/.*\.(jpeg|jpg|gif|png|bmp|webp)$/i;
                 if (imageUrlPattern.test(message)) {
-                    // If it is an image link, create an image element
                     const image = document.createElement('img');
                     image.src = message;
-                    image.alt = "Image";  // Optional: add a description for the image
-                    image.style.maxWidth = '100%'; // Adjust the image size if needed
+                    image.alt = "Image";
+                    image.style.maxWidth = '100%';
                     image.style.height = 'auto';
                     messageText.appendChild(image);
                 } else {
-                    // Otherwise, just append the text
                     messageText.innerHTML = message;
                 }
 
@@ -225,6 +232,16 @@
                 chatBox.appendChild(messageContainer);
             }
         });
+
+        function updateMap(locations) {
+            const iframe = document.querySelector('.map-container iframe');
+            const locationQuery = locations.join('|');
+            iframe.src = `https://www.google.com/maps/embed/v1/place?key=AIzaSyDv_OEg50nhbpvW-EtNy3ze-dqsG4tPEEI&q=${locationQuery}`;
+        }
+
+        // ตัวอย่างแผนที่ทริป
+        const sampleItinerary = ["Chiang Mai", "Bangkok", "Phuket"];
+        updateMap(sampleItinerary);
     </script>
 </head>
 <body>
@@ -233,23 +250,20 @@
         <button onclick="selectOption('transportation')">Transportation</button>
         <button onclick="selectOption('activities')">Activities</button>
         <button onclick="selectOption('picture')">Picture with Detail</button>
+        <button onclick="selectOption('map')">Show Map</button>
     </div>
     <div class="chat-container">
         <div class="header">Thailand Trip Planner Chatbot</div>
-        <div class="chat-box" id="chat-box">
-            <!-- Chat messages will be appended here by JavaScript -->
-        </div>
+        <div class="chat-box" id="chat-box"></div>
         <form id="chat-form" method="POST" action="/">
             <div class="input-container">
-                <input type="text" 
-                       class="query-input" 
-                       id="query-input" 
-                       name="query-input" 
-                       required 
-                       placeholder="Ask me about your trip to Thailand...">
+                <input type="text" class="query-input" id="query-input" name="query-input" required placeholder="Ask me about your trip to Thailand...">
                 <button type="submit" class="send-button">Send</button>
             </div>
         </form>
+        <div class="map-container">
+            <iframe loading="lazy" allowfullscreen></iframe>
+        </div>
     </div>
 </body>
 </html>
